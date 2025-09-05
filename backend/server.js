@@ -1,3 +1,4 @@
+// This file recieves http requests from react
 // handles server side operations
 const express = require('express');
 
