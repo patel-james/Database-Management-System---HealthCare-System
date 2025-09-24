@@ -1,3 +1,5 @@
+// This file stores authentications for the mysql database 
+
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
