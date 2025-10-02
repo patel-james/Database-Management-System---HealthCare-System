@@ -34,7 +34,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/insurance', insuranceRouter);
 
 app.get('/', (req, res)=> {
-    res.send('Backend Is UP & Running!');
+    res.send('Backend is running');
 });
 
 

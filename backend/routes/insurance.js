@@ -2,48 +2,55 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db_connection');
 
-// --- GET all insurance plans ---
+// --- GET /api/insurance (Get All Insurance Providers - Admin Function) ---
 router.get('/', (req, res) => {
-    const sql = 'SELECT * FROM Insurance'; 
+    const sql = 'SELECT * FROM Insurance';
     db.query(sql, (err, result) => {
-        if (err) {
-            console.error('Error fetching insurance plans:', err);
-            res.status(500).send('Error retrieving insurance plans from the database.'); 
-            return;
-        }
+        if (err) return res.status(500).json({ error: 'Failed to retrieve insurance data.' });
         res.json(result);
     });
 });
 
-// --- POST a new insurance plan ---
+// --- POST /api/insurance (Create New Insurance Provider - Admin Function) ---
 router.post('/', (req, res) => {
-    // Destructure required fields matching your Insurance table structure
-    const { 
-        insurance_provider, 
-        policy_number
-    } = req.body;
-
-    // The SQL query to insert a new insurance plan
-    const sql = `
-        INSERT INTO Insurance 
-        (insurance_provider, policy_number) 
-        VALUES (?, ?)
-    `;
+    const { insurance_provider, policy_number } = req.body;
+    const sql = 'INSERT INTO Insurance (insurance_provider, policy_number) VALUES (?, ?)';
     
-    // The values array to safely inject data into the query
-    const values = [
-        insurance_provider, 
-        policy_number
-    ];
+    db.query(sql, [insurance_provider, policy_number], (err, result) => {
+        if (err) return res.status(500).send('Failed to add new insurance provider.');
+        res.status(201).send(`New Insurance Provider added successfully with ID: ${result.insertId}`);
+    });
+});
 
-    db.query(sql, values, (err, result) => {
+// --- PUT /api/insurance/:id (Update Insurance Provider - Admin Function) ---
+router.put('/:id', (req, res) => {
+    const insurance_id = req.params.id;
+    const { insurance_provider, policy_number } = req.body;
+    
+    const sql = 'UPDATE Insurance SET insurance_provider = ?, policy_number = ? WHERE insurance_id = ?';
+    
+    db.query(sql, [insurance_provider, policy_number, insurance_id], (err, result) => {
+        if (err) return res.status(500).send('Failed to update insurance provider.');
+        if (result.affectedRows === 0) return res.status(404).send('Insurance provider not found.');
+        res.send(`Insurance Provider ID ${insurance_id} updated successfully.`);
+    });
+});
+
+// --- DELETE /api/insurance/:id (Delete Insurance Provider - Admin Function) ---
+router.delete('/:id', (req, res) => {
+    const insurance_id = req.params.id;
+    const sql = 'DELETE FROM Insurance WHERE insurance_id = ?';
+    
+    db.query(sql, [insurance_id], (err, result) => {
         if (err) {
-            console.error('Error creating new insurance plan:', err);
-            res.status(500).send('Failed to create new insurance plan.');
-            return;
+            // Check for foreign key conflict
+            if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+                return res.status(409).send('Cannot delete: Policy is linked to patients.');
+            }
+            return res.status(500).send('Failed to delete insurance provider.');
         }
-        // Send a 201 Created status for successful insertion
-        res.status(201).send('Insurance plan created successfully!');
+        if (result.affectedRows === 0) return res.status(404).send('Insurance provider not found.');
+        res.send(`Insurance Provider ID ${insurance_id} deleted successfully.`);
     });
 });
 

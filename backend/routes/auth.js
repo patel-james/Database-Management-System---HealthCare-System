@@ -1,106 +1,82 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db_connection');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs'); 
+const jwt = require('jsonwebtoken'); 
 
-// WARNING: Hardcoding a secret key is NOT RECOMMENDED for production systems.
-// This is done ONLY for simplicity in a private local development environment.
-const JWT_SECRET = 'HlF#5k@zT9yX8cW!dE$1rO0gH2jA4sQ6pL7iU3vB9nZ0mY1'; 
+// ***IMPORTANT: Use a proper environment variable for this in a real environment***
+const JWT_SECRET = 'your_strong_and_unique_jwt_secret_key'; 
 
-// NEW: Add a simple GET handler for testing the base path
-router.get('/', (req, res) => {
-    res.json({ 
-        message: 'Authentication API is running.',
-        available_endpoints: ['POST /api/auth/register', 'POST /api/auth/login']
-    });
-});
-
-// --- REGISTRATION ROUTE (/api/auth/register) ---
-router.post('/register', async (req, res) => {
-    const { email, password, role, patient_id, doctor_id } = req.body;
-
-    if (!email || !password || !role) {
-        return res.status(400).send('Email, password, and role are required.');
-    }
-
+// --- POST /api/auth/register/admin (Initial Setup) ---
+router.post('/register/admin', async (req, res) => {
+    const { email, password } = req.body;
+    
     try {
-        // 1. Hash the password before storing it
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const salt = await bcrypt.genSalt(10);
+        const password_hash = await bcrypt.hash(password, salt);
 
-        // 2. Prepare the SQL query
         const sql = `
-            INSERT INTO Users (email, password, role, patient_id, doctor_id) 
-            VALUES (?, ?, ?, ?, ?)
-        `;
-        const values = [email, hashedPassword, role, patient_id || null, doctor_id || null];
-
-        // 3. Execute the query
-        db.query(sql, values, (err, result) => {
+            INSERT INTO Users 
+            (email, password_hash, user_role) 
+            VALUES (?, ?, 'Admin')`;
+            
+        db.query(sql, [email, password_hash], (err, result) => {
             if (err) {
-                // Check for duplicate entry error (e.g., email already exists)
                 if (err.code === 'ER_DUP_ENTRY') {
-                    return res.status(409).send('User with this email already exists.');
+                    return res.status(409).json({ error: 'Email already in use.' });
                 }
-                console.error('Database Error during registration:', err);
-                return res.status(500).send('Database error during registration.');
+                console.error('Admin registration failed:', err);
+                return res.status(500).json({ error: 'Failed to register Admin user.' });
             }
-            res.status(201).send('User registered successfully.');
+            res.status(201).send('Admin User registered successfully.');
         });
     } catch (error) {
-        console.error('Server Error during registration:', error);
-        res.status(500).send('Internal server error during registration.');
+        console.error('Error during admin registration:', error);
+        res.status(500).json({ error: 'Server error during password hashing.' });
     }
 });
 
-// --- LOGIN ROUTE (/api/auth/login) ---
-router.post('/login', (req, res) => {
+// --- POST /api/auth/login (Main Login Endpoint) ---
+router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).send('Email and password are required.');
+    try {
+        const sql = 'SELECT * FROM Users WHERE email = ?';
+        db.query(sql, [email], async (err, rows) => {
+            if (err) return res.status(500).json({ message: 'Server error.' });
+            
+            const user = rows[0];
+
+            if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+            const isMatch = await bcrypt.compare(password, user.password_hash);
+
+            if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+            const payload = {
+                user_id: user.user_id,
+                role: user.user_role,
+                profile_id: user.user_role === 'Patient' ? user.patient_id : user.doctor_id 
+            };
+            
+            const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+            res.json({ 
+                token, 
+                role: user.user_role,
+                profile_id: payload.profile_id
+            });
+        });
+
+    } catch (error) {
+        console.error('General error during login:', error);
+        res.status(500).json({ message: 'Server error during login process' });
     }
+});
 
-    // 1. Find the user by email
-    const sql = 'SELECT * FROM Users WHERE email = ?';
-    db.query(sql, [email], async (err, results) => {
-        if (err) {
-            console.error('Database Error during login:', err);
-            return res.status(500).send('Database error during login.');
-        }
-
-        const user = results[0];
-        if (!user) {
-            return res.status(401).send('Invalid credentials.');
-        }
-
-        try {
-            // 2. Compare the provided password with the stored hash
-            const isMatch = await bcrypt.compare(password, user.password);
-
-            if (!isMatch) {
-                return res.status(401).send('Invalid credentials.');
-            }
-
-            // 3. Generate a JWT token
-            const token = jwt.sign(
-                { 
-                    user_id: user.user_id, 
-                    role: user.role,
-                    patient_id: user.patient_id,
-                    doctor_id: user.doctor_id
-                }, 
-                JWT_SECRET, 
-                { expiresIn: '1h' } // Token expires in 1 hour
-            );
-
-            // 4. Send the token back to the client
-            res.json({ token, role: user.role, user_id: user.user_id });
-        } catch (error) {
-            console.error('Server Error during login:', error);
-            res.status(500).send('Internal server error during login.');
-        }
-    });
+// --- GET /api/auth (Test Route) ---
+router.get('/', (req, res) => {
+    res.send('Auth API is online. Use POST for /login or /register/admin.');
 });
 
 module.exports = router;
