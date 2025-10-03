@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './Login'; // Assuming you put Login.js in src/components
+import Login from './login'; 
+import AdminSetup from './AdminSetup'; 
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
@@ -8,31 +9,33 @@ import PatientDashboard from './pages/PatientDashboard';
 // --- Helper Component to Protect Routes ---
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const isAuthenticated = localStorage.getItem('authToken');
-  const userRole = localStorage.getItem('userRole');
+  // FIX: Declared and assigned userRole in one line to clear the 'no-unused-vars' warning
+  const userRole = localStorage.getItem('userRole'); 
 
   if (!isAuthenticated) {
-    // 1. If not logged in, redirect to the login page
     return <Navigate to="/login" replace />;
   }
-
+  
   if (allowedRoles && !allowedRoles.includes(userRole)) {
-    // 2. If logged in but lacks the correct role, redirect to a forbidden page or login
-    // In a simple app, we'll redirect to a generic page or login.
-    localStorage.clear(); // Clear bad credentials
+    localStorage.clear(); 
     alert(`Access Denied! Your role (${userRole}) cannot view this page.`);
     return <Navigate to="/login" replace />;
   }
 
-  // 3. If authenticated and authorized, render the child component (the desired page)
   return children;
 };
 
 // --- Main Application Component ---
 function App() {
+  const isAuthenticated = localStorage.getItem('authToken');
+
   return (
     <Router>
       <div className="App">
         <Routes>
+          {/* NEW Public Route: Admin Registration */}
+          <Route path="/setup" element={<AdminSetup />} /> 
+
           {/* Public Route: The Login page */}
           <Route path="/login" element={<Login />} />
 
@@ -62,13 +65,14 @@ function App() {
             } 
           />
 
-          {/* Default Route: Check if user is logged in, then redirect to their dashboard, otherwise redirect to login */}
+          {/* Default Route: TEMPORARILY change the redirect logic for setup */}
           <Route 
             path="*" 
             element={
-              <Navigate to={localStorage.getItem('authToken') ? 
+              <Navigate to={isAuthenticated ? 
                 `/${localStorage.getItem('userRole').toLowerCase()}/dashboard` : 
-                "/login"} 
+                "/setup"} 
+                /* ^--- TEMPORARILY redirect to /setup if not logged in */
               />
             } 
           />
