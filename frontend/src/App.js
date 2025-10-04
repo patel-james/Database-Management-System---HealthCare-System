@@ -71,7 +71,7 @@ function App() {
             element={
               <Navigate to={isAuthenticated ? 
                 `/${localStorage.getItem('userRole').toLowerCase()}/dashboard` : 
-                "/setup"} 
+                "/login"} 
                 /* ^--- TEMPORARILY redirect to /setup if not logged in */
               />
             } 

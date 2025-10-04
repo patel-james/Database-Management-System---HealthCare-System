@@ -1,20 +1,16 @@
-// This file stores authentications for the mysql database 
-
 const mysql = require('mysql2');
 
-const db = mysql.createConnection({
+// Create a pool instead of a single connection
+const pool = mysql.createPool({
+    connectionLimit: 10, // Max number of connections in the pool
     host: 'localhost',
     user: 'root',
     password: 'jamespatel',
     database: 'healthcare_db'
 });
 
-db.connect(err =>{
-    if(err){
-        console.error('Database Connection Failed: ' + err.stack);
-        return;
-    }
-    console.log('Connection Successfull to MySQL database as id: '+ db.threadId);
-});
+// The pool will handle connections and disconnections automatically
+console.log('Connection Pool created successfully for healthcare_db.');
 
-module.exports = db;
+// Export the pool promise-based wrapper
+module.exports = pool.promise();
