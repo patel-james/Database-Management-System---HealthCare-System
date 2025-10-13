@@ -1,7 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './login'; 
-import AdminSetup from './AdminSetup'; 
+
+// --- Import Page Components ---
+import RoleSelection from './RoleSelection'; // The new landing page
+import Login from './login';
+import Signup from './Signup'; // The new signup page
+import AdminSetup from './AdminSetup';
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
@@ -9,17 +13,19 @@ import PatientDashboard from './pages/PatientDashboard';
 // --- Helper Component to Protect Routes ---
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const isAuthenticated = localStorage.getItem('authToken');
-  // FIX: Declared and assigned userRole in one line to clear the 'no-unused-vars' warning
-  const userRole = localStorage.getItem('userRole'); 
+  const userRole = localStorage.getItem('userRole');
 
+  // If not logged in, redirect to the main role selection page
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
-  
+
+  // If the user's role is not allowed for this route, log them out and redirect
   if (allowedRoles && !allowedRoles.includes(userRole)) {
-    localStorage.clear(); 
-    alert(`Access Denied! Your role (${userRole}) cannot view this page.`);
-    return <Navigate to="/login" replace />;
+    localStorage.clear();
+    // Using console.error is better than alert for a smoother user experience
+    console.error(`Access Denied! Your role (${userRole}) cannot view this page.`);
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -33,48 +39,49 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* NEW Public Route: Admin Registration */}
-          <Route path="/setup" element={<AdminSetup />} /> 
+          {/* --- Public Routes --- */}
+          <Route path="/" element={<RoleSelection />} />
+          <Route path="/login/:role" element={<Login />} />
+          <Route path="/signup/:role" element={<Signup />} />
+          <Route path="/setup" element={<AdminSetup />} />
 
-          {/* Public Route: The Login page */}
-          <Route path="/login" element={<Login />} />
-
-          {/* Protected Routes (Dashboards) */}
-          <Route 
-            path="/admin/dashboard" 
+          {/* --- Protected Dashboard Routes --- */}
+          <Route
+            path="/admin/dashboard"
             element={
               <ProtectedRoute allowedRoles={['Admin']}>
                 <AdminDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/doctor/dashboard" 
+          <Route
+            path="/doctor/dashboard"
             element={
               <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
                 <DoctorDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/patient/dashboard" 
+          <Route
+            path="/patient/dashboard"
             element={
               <ProtectedRoute allowedRoles={['Patient', 'Admin']}>
                 <PatientDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
 
-          {/* Default Route: TEMPORARILY change the redirect logic for setup */}
-          <Route 
-            path="*" 
+          {/* --- Default Catch-All Route --- */}
+          <Route
+            path="*"
             element={
-              <Navigate to={isAuthenticated ? 
-                `/${localStorage.getItem('userRole').toLowerCase()}/dashboard` : 
-                "/login"} 
-                
+              <Navigate to={
+                isAuthenticated
+                  ? `/${localStorage.getItem('userRole').toLowerCase()}/dashboard`
+                  : "/" // If not logged in, redirect to the main role selection page
+              }
               />
-            } 
+            }
           />
         </Routes>
       </div>
@@ -83,3 +90,4 @@ function App() {
 }
 
 export default App;
+
