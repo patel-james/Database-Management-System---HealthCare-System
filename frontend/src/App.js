@@ -1,11 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
-// --- Import Page Components ---
-import RoleSelection from './RoleSelection'; // The new landing page
-import Login from './login';
-import Signup from './Signup'; // The new signup page
-import AdminSetup from './AdminSetup';
+import Login from './login'; 
+import Signup from './Signup';
+import RoleSelection from './RoleSelection';
+import AdminSetup from './AdminSetup'; 
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
@@ -13,17 +11,16 @@ import PatientDashboard from './pages/PatientDashboard';
 // --- Helper Component to Protect Routes ---
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const isAuthenticated = localStorage.getItem('authToken');
-  const userRole = localStorage.getItem('userRole');
+  const userRole = localStorage.getItem('userRole'); 
 
-  // If not logged in, redirect to the main role selection page
   if (!isAuthenticated) {
+    // Redirect to the role selection page if not authenticated
     return <Navigate to="/" replace />;
   }
-
-  // If the user's role is not allowed for this route, log them out and redirect
+  
   if (allowedRoles && !allowedRoles.includes(userRole)) {
-    localStorage.clear();
-    // Using console.error is better than alert for a smoother user experience
+    localStorage.clear(); 
+    // It's better to handle this via state management than a disruptive alert
     console.error(`Access Denied! Your role (${userRole}) cannot view this page.`);
     return <Navigate to="/" replace />;
   }
@@ -34,54 +31,52 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 // --- Main Application Component ---
 function App() {
   const isAuthenticated = localStorage.getItem('authToken');
+  const userRole = localStorage.getItem('userRole');
 
   return (
     <Router>
       <div className="App">
         <Routes>
-          {/* --- Public Routes --- */}
+          {/* Public Routes */}
           <Route path="/" element={<RoleSelection />} />
           <Route path="/login/:role" element={<Login />} />
           <Route path="/signup/:role" element={<Signup />} />
-          <Route path="/setup" element={<AdminSetup />} />
+          <Route path="/setup" element={<AdminSetup />} /> 
 
-          {/* --- Protected Dashboard Routes --- */}
-          <Route
-            path="/admin/dashboard"
+          {/* Protected Routes (Dashboards) */}
+          <Route 
+            path="/admin/dashboard" 
             element={
               <ProtectedRoute allowedRoles={['Admin']}>
                 <AdminDashboard />
               </ProtectedRoute>
-            }
+            } 
           />
-          <Route
-            path="/doctor/dashboard"
+          <Route 
+            path="/doctor/dashboard" 
             element={
-              <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
+              <ProtectedRoute allowedRoles={['Doctor']}>
                 <DoctorDashboard />
               </ProtectedRoute>
-            }
+            } 
           />
-          <Route
-            path="/patient/dashboard"
+          <Route 
+            path="/patient/dashboard" 
             element={
-              <ProtectedRoute allowedRoles={['Patient', 'Admin']}>
+              <ProtectedRoute allowedRoles={['Patient']}>
                 <PatientDashboard />
               </ProtectedRoute>
-            }
+            } 
           />
 
-          {/* --- Default Catch-All Route --- */}
-          <Route
-            path="*"
+          {/* Default Route Logic */}
+          <Route 
+            path="*" 
             element={
-              <Navigate to={
-                isAuthenticated
-                  ? `/${localStorage.getItem('userRole').toLowerCase()}/dashboard`
-                  : "/" // If not logged in, redirect to the main role selection page
-              }
-              />
-            }
+              isAuthenticated && userRole ? 
+                <Navigate to={`/${userRole.toLowerCase()}/dashboard`} /> : 
+                <Navigate to="/" />
+            } 
           />
         </Routes>
       </div>

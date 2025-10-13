@@ -1,49 +1,54 @@
 const jwt = require('jsonwebtoken');
 const db = require('../db_connection');
 
-// Use the same secret key as in your auth.js
 const JWT_SECRET = 'your_strong_and_unique_jwt_secret_key';
 
 const protect = async (req, res, next) => {
     let token;
-
+    
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // 1. Get token from the 'Bearer <token>' header
+            // 1. Get token from header
             token = req.headers.authorization.split(' ')[1];
 
-            // 2. Verify the token is valid
+            // 2. Verify token
             const decoded = jwt.verify(token, JWT_SECRET);
 
-            // 3. Get user info from DB using the ID in the token
-            // We attach the user info to the request object for later use
-            const [rows] = await db.query('SELECT user_id, user_role FROM Users WHERE user_id = ?', [decoded.user_id]);
-            
-            if (rows.length === 0) {
-                 return res.status(401).json({ error: 'Not authorized, user not found.' });
+            // 3. Get user from the database using the ID from the token
+            // This ensures we always have the LATEST user data and profile IDs
+            const sql = 'SELECT user_id, email, user_role, patient_id, doctor_id FROM Users WHERE user_id = ?';
+            const [users] = await db.query(sql, [decoded.user_id]);
+
+            if (users.length === 0) {
+                return res.status(401).json({ error: 'Not authorized, user not found.' });
             }
+            
+            const user = users[0];
 
-            req.user = rows[0];
+            // 4. Attach the full, up-to-date user object to the request
+            req.user = {
+                id: user.user_id, // Use a consistent name
+                role: user.user_role,
+                profile_id: user.user_role === 'Patient' ? user.patient_id : user.doctor_id
+            };
 
-            // 4. Move to the next function in the chain
             next();
         } catch (error) {
             console.error('Token verification failed:', error);
-            return res.status(401).json({ error: 'Not authorized, token failed.' });
+            res.status(401).json({ error: 'Not authorized, token failed.' });
         }
     }
 
     if (!token) {
-        return res.status(401).json({ error: 'Not authorized, no token provided.' });
+        res.status(401).json({ error: 'Not authorized, no token.' });
     }
 };
 
 const isAdmin = (req, res, next) => {
-    // This runs *after* protect, so req.user will exist
-    if (req.user && req.user.user_role === 'Admin') {
+    if (req.user && req.user.role === 'Admin') {
         next();
     } else {
-        return res.status(403).json({ error: 'Forbidden. Admin access required.' });
+        res.status(403).json({ error: 'Not authorized as an admin.' });
     }
 };
 

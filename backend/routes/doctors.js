@@ -4,7 +4,38 @@ const db = require('../db_connection');
 const bcrypt = require('bcryptjs');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 
-// --- GET /api/doctors (Get All Doctors with Email - Admin Only) ---
+// --- NEW PUBLIC ROUTES FOR PATIENT DASHBOARD ---
+
+// GET /api/doctors/specializations (Get all unique specializations)
+router.get('/specializations', async (req, res) => {
+    try {
+        const sql = 'SELECT DISTINCT specialization FROM Doctors WHERE specialization IS NOT NULL AND specialization != "" ORDER BY specialization ASC';
+        const [results] = await db.query(sql);
+        const specializations = results.map(row => row.specialization);
+        res.json(specializations);
+    } catch (error) {
+        console.error('Failed to fetch specializations:', error);
+        res.status(500).json({ error: 'Server error while fetching specializations.' });
+    }
+});
+
+// GET /api/doctors/specialization/:specializationName (Get doctors by specialization)
+router.get('/specialization/:specializationName', async (req, res) => {
+    try {
+        const { specializationName } = req.params;
+        const sql = 'SELECT doctor_id, first_name, last_name FROM Doctors WHERE specialization = ?';
+        const [doctors] = await db.query(sql, [specializationName]);
+        res.json(doctors);
+    } catch (error) {
+        console.error('Failed to fetch doctors by specialization:', error);
+        res.status(500).json({ error: 'Server error while fetching doctors.' });
+    }
+});
+
+
+// --- ADMIN-ONLY ROUTES ---
+
+// GET /api/doctors (Get All Doctors with Email - Admin Only)
 router.get('/', protect, isAdmin, async (req, res) => {
     try {
         const sql = `
@@ -21,7 +52,7 @@ router.get('/', protect, isAdmin, async (req, res) => {
     }
 });
 
-// --- POST /api/doctors (Admin Creates New Doctor) ---
+// POST /api/doctors (Admin Creates New Doctor)
 router.post('/', protect, isAdmin, async (req, res) => {
     const {
         first_name, last_name, email, password, phone_number, specialization
@@ -65,7 +96,7 @@ router.post('/', protect, isAdmin, async (req, res) => {
     }
 });
 
-// --- PUT /api/doctors/:id (Update Doctor and User - Admin Only) ---
+// PUT /api/doctors/:id (Update Doctor and User - Admin Only)
 router.put('/:id', protect, isAdmin, async (req, res) => {
     const { id } = req.params;
     const { 
@@ -116,31 +147,24 @@ router.put('/:id', protect, isAdmin, async (req, res) => {
     }
 });
 
-// --- DELETE /api/doctors/:id (Delete Doctor and all related data - Admin Only) ---
+// DELETE /api/doctors/:id (Delete Doctor and all related data - Admin Only)
 router.delete('/:id', protect, isAdmin, async (req, res) => {
     const { id } = req.params;
     const connection = await db.getConnection();
     try {
         await connection.beginTransaction();
         
-        // 1. Find all appointments for the doctor
         const [appointments] = await connection.query('SELECT appointment_id FROM Appointments WHERE doctor_id = ?', [id]);
         
         if (appointments.length > 0) {
             const appointmentIds = appointments.map(a => a.appointment_id);
             
-            // 2. Delete all prescriptions and diagnoses linked to those appointments
             await connection.query('DELETE FROM Prescriptions WHERE appointment_id IN (?)', [appointmentIds]);
             await connection.query('DELETE FROM Diagnoses WHERE appointment_id IN (?)', [appointmentIds]);
         }
 
-        // 3. Delete all appointments for the doctor
         await connection.query('DELETE FROM Appointments WHERE doctor_id = ?', [id]);
-        
-        // 4. Delete the associated user account
         await connection.query('DELETE FROM Users WHERE doctor_id = ?', [id]);
-        
-        // 5. Finally, delete the doctor
         const [result] = await connection.query('DELETE FROM Doctors WHERE doctor_id = ?', [id]);
 
         if (result.affectedRows === 0) {
