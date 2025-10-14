@@ -96,7 +96,17 @@ const STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
     body { margin: 0; font-family: 'Inter', sans-serif; }
     .auth-page-container { display: flex; min-height: 100vh; }
-    .auth-left-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(to top right, #007bff, #0056b3); color: white; padding: 50px; text-align: left; }
+    .auth-left-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center; /* This centers the content horizontally */
+        background: linear-gradient(to top right, #007bff, #0056b3);
+        color: white;
+        padding: 50px;
+        text-align: center; /* This centers the text */
+    }
     .auth-left-panel h1 { font-size: 3rem; margin: 20px 0 10px; }
     .auth-left-panel p { font-size: 1.2rem; max-width: 400px; line-height: 1.6; }
     .auth-right-panel { flex: 1; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; padding: 40px; }

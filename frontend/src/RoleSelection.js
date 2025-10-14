@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 // --- SVG Icon Components ---
 const PatientIcon = () => (
@@ -38,7 +38,6 @@ function RoleSelection() {
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        // Trigger animations on component mount
         setLoaded(true);
     }, []);
 
@@ -47,7 +46,8 @@ function RoleSelection() {
         minHeight: '100vh',
         fontFamily: "'Inter', sans-serif",
         backgroundColor: '#f8f9fa',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative' // Added for positioning context
     };
 
     const leftPanelStyle = {
@@ -81,7 +81,6 @@ function RoleSelection() {
     
     return (
         <>
-            {/* Injecting Google Fonts and global styles */}
             <style>
                 {`
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -117,9 +116,29 @@ function RoleSelection() {
                 .role-button:hover svg {
                     stroke: #007bff;
                 }
+                .credentials-link {
+                    position: absolute;
+                    top: 2rem;
+                    right: 2rem;
+                    padding: 0.75rem 1.5rem;
+                    border: 1px solid #007bff;
+                    border-radius: 50px;
+                    color: #007bff;
+                    background-color: white;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    z-index: 10;
+                }
+                .credentials-link:hover {
+                    background-color: #007bff;
+                    color: white;
+                }
                 `}
             </style>
             <div style={pageStyle}>
+                <Link to="/credits" className="credentials-link">Credentials</Link>
+                
                 <div style={leftPanelStyle}>
                     <div style={{ marginBottom: '20px' }}><BrandLogo /></div>
                     <h1 style={{ fontSize: '2.8rem', fontWeight: 700, margin: '0 0 10px 0' }}>Total Health</h1>

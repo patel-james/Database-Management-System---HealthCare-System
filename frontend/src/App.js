@@ -4,6 +4,7 @@ import Login from './login';
 import Signup from './Signup';
 import RoleSelection from './RoleSelection';
 import AdminSetup from './AdminSetup'; 
+import Credits from './Credits'; // Import the new Credits component
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
@@ -42,6 +43,7 @@ function App() {
           <Route path="/login/:role" element={<Login />} />
           <Route path="/signup/:role" element={<Signup />} />
           <Route path="/setup" element={<AdminSetup />} /> 
+          <Route path="/credits" element={<Credits />} /> {/* Add the new route for the credits page */}
 
           {/* Protected Routes (Dashboards) */}
           <Route 
