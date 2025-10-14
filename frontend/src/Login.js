@@ -75,10 +75,14 @@ function Login() {
                     </form>
                     {message && <p className={`message ${message.includes('successful') ? 'success' : 'error'}`}>{message}</p>}
                     
-                    {/* Only show the 'Sign Up' link for Patients and Doctors */}
-                    {role !== 'admin' && (
+                    {/* Conditional links based on the role */}
+                    {role !== 'admin' ? (
                         <p className="auth-switch-text">
                             Don't have an account? <Link to={`/signup/${role}`}>Sign Up</Link>
+                        </p>
+                    ) : (
+                        <p className="auth-switch-text">
+                           Need to set up a new administrator? <Link to="/setup">Create Admin Account</Link>
                         </p>
                     )}
                 </div>
