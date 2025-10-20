@@ -334,6 +334,7 @@ const JWT_SECRET = 'your_strong_and_unique_jwt_secret_key';
 - Test with different user roles
 
 ## 📁 Project Structure
+```bash
 Database-Management-System---HealthCare-System/
 │
 ├── backend/
