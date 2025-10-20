@@ -1,78 +1,365 @@
-# Healthcare Management System Project: Full-Stack Development Plan
-## Project Goal
+# Healthcare Database Management System
 
-The primary objective of this project is to build a functional, full-stack web application that demonstrates key concepts in database design, secure backend development, and dynamic frontend user experiences. The application will simulate a basic healthcare management system with distinct user roles, showcasing a practical implementation of role-based access control.
+A full-stack web application for healthcare management with role-based access control, built using React.js, Node.js, Express.js, and MySQL.
 
-## System Architecture
+## 🏥 Features
 
-The application will be built on a secure three-tier architecture: a relational database for data persistence, a backend API for business logic, and a React frontend for the user interface.
+### Role-Based Access Control
+- **Admin**: Full system management, user creation, and data oversight
+- **Doctor**: Appointment management, patient consultation, diagnosis recording
+- **Patient**: Appointment booking, medical history viewing, profile management
 
-  Frontend (React): The presentation layer, responsible for displaying the user interface. It will be a dynamic Single-Page Application (SPA) with different views based on the user's role.
+### Core Functionality
+- User authentication and authorization
+- Patient and doctor registration
+- Appointment scheduling and management
+- Medical diagnosis and prescription recording
+- Insurance information management
+- Responsive design with theme switching
+- Real-time data updates
 
-  Backend (Node.js/Express.js): The application layer, which acts as the secure intermediary between the frontend and the database. It will handle all authentication, authorization, and data requests.
+## 🛠️ Technology Stack
 
-  Database (MySQL): The data layer, serving as the single source of truth for all healthcare data. It will be hosted on a local machine for development and will be structured to support the application's     functionality.
+### Frontend
+- **React.js** - User interface framework
+- **React Router** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **CSS3** - Styling with modern design patterns
 
-## Database Design
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web application framework
+- **MySQL2** - Database driver
+- **JWT** - JSON Web Tokens for authentication
+- **bcryptjs** - Password hashing
+- **CORS** - Cross-origin resource sharing
 
-The database schema will be normalized to ensure data integrity and will include the following tables:
+### Database
+- **MySQL** - Relational database management system
 
-  Patients: Stores patient demographics and emergency contact information.
+## 📋 Prerequisites
 
-  Doctors: Contains doctor profiles and their specializations.
+Before running this application, make sure you have the following installed:
 
-  Appointments: Tracks all patient-doctor appointments.
-  
-  Diagnoses: Records diagnoses associated with specific appointments.
+- **Node.js** (v14 or higher)
+- **npm** (v6 or higher)
+- **MySQL** (v8.0 or higher)
+- **Git** (for cloning the repository)
 
-  Prescriptions: Stores medication details for each diagnosis.
+## 🚀 Installation & Setup
 
-  Insurance: Holds information on insurance providers.
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd Database-Management-System---HealthCare-System
+```
 
-  Users: A critical table for authentication, storing user login credentials, a role (dba, doctor, or patient), and a foreign key to link to either a Patients or Doctors record.
+### 2. Database Setup
 
-## Role-Based Views and Functionality
+#### Create MySQL Database
+```sql
+CREATE DATABASE healthcare_db;
+USE healthcare_db;
+```
 
-  The application's front end will feature three distinct views, each with specific permissions:
+#### Create Database Tables
+Run the following SQL commands in your MySQL client:
 
-### 1. DBA (Database Administrator) View
+```sql
+-- Users table for authentication
+CREATE TABLE Users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    user_role ENUM('Admin', 'Doctor', 'Patient') NOT NULL,
+    patient_id INT NULL,
+    doctor_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id) ON DELETE CASCADE
+);
 
-  This is the "boss" view with full administrative privileges. The DBA will be able to perform all CRUD (Create, Read, Update, Delete) operations on the database.
+-- Patients table
+CREATE TABLE Patients (
+    patient_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    date_of_birth DATE,
+    phone_number VARCHAR(20),
+    address TEXT,
+    emergency_contact_name VARCHAR(100),
+    emergency_contact_phone VARCHAR(20),
+    insurance_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (insurance_id) REFERENCES Insurance(insurance_id) ON DELETE SET NULL
+);
 
-  Functionality:
+-- Doctors table
+CREATE TABLE Doctors (
+    doctor_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    specialization VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-  Create, view, edit, and delete Patients, Doctors, and Insurance records.
+-- Insurance table
+CREATE TABLE Insurance (
+    insurance_id INT PRIMARY KEY AUTO_INCREMENT,
+    insurance_provider VARCHAR(100) NOT NULL,
+    policy_number VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-  Create, view, and manage all Appointments.
+-- Appointments table
+CREATE TABLE Appointments (
+    appointment_id INT PRIMARY KEY AUTO_INCREMENT,
+    patient_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    appointment_date DATETIME NOT NULL,
+    reason_for_visit TEXT,
+    status ENUM('Scheduled', 'Completed', 'Archived') DEFAULT 'Scheduled',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id) ON DELETE CASCADE
+);
 
-  Create and manage all Diagnoses and Prescriptions.
+-- Diagnoses table
+CREATE TABLE Diagnoses (
+    diagnosis_id INT PRIMARY KEY AUTO_INCREMENT,
+    appointment_id INT NOT NULL,
+    diagnosis_description TEXT NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id) ON DELETE CASCADE
+);
 
-  Crucially, the DBA will also create user accounts for new patients and doctors, assigning them a temporary password and their respective role.
+-- Prescriptions table
+CREATE TABLE Prescriptions (
+    prescription_id INT PRIMARY KEY AUTO_INCREMENT,
+    appointment_id INT NOT NULL,
+    medication_name VARCHAR(100) NOT NULL,
+    dosage VARCHAR(50),
+    instructions TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id) ON DELETE CASCADE
+);
+```
 
-### 2. Doctor View
+### 3. Backend Setup
 
-  A doctor's interface will focus on their scheduled patients and medical tasks.
+```bash
+# Navigate to backend directory
+cd backend
 
-  Functionality:
+# Install dependencies
+npm install
 
-  View a personalized list of their scheduled and completed appointments.
+# Create environment file
+cp .env.example .env
+```
 
-  Access a patient's medical records for appointments they were involved in.
+#### Configure Environment Variables
+Edit the `.env` file with your database credentials:
 
-  Add new Diagnoses and Prescriptions to a patient's record after a completed visit.
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=healthcare_db
+JWT_SECRET=your_strong_jwt_secret_key
+PORT=3001
+```
 
-  Update the status of an appointment to 'Completed'.
+#### Start Backend Server
+```bash
+npm start
+# or
+node server.js
+```
 
-### 3. Patient View
+The backend server will run on `http://localhost:3001`
 
-  The patient view is the most restricted for security and privacy. A patient can only view their own records.
+### 4. Frontend Setup
 
-  Functionality:
+```bash
+# Navigate to frontend directory (in a new terminal)
+cd frontend
 
-  View their upcoming appointments.
+# Install dependencies
+npm install
 
-  Access and read their personal Diagnoses and Prescriptions history.
+# Start development server
+npm start
+```
 
-  View their stored demographic and insurance information.
+The frontend application will run on `http://localhost:3000`
 
+## 🔧 Configuration
 
+### Database Connection
+Update the database connection settings in `backend/db_connection.js`:
+
+```javascript
+const pool = mysql.createPool({
+  connectionLimit: 10,
+  host: "localhost",
+  user: "root",
+  password: "your_mysql_password",
+  database: "healthcare_db",
+});
+```
+
+### JWT Secret
+Update the JWT secret in `backend/routes/auth.js`:
+
+```javascript
+const JWT_SECRET = 'your_strong_and_unique_jwt_secret_key';
+```
+
+## 👥 User Roles & Access
+
+### Admin Account
+- **Setup**: Use the admin setup page at `/setup`
+- **Permissions**: 
+  - Create/edit/delete patients and doctors
+  - View all appointments and medical records
+  - Manage system-wide data
+
+### Doctor Account
+- **Registration**: Available at `/signup/doctor`
+- **Permissions**:
+  - View assigned appointments
+  - Record diagnoses and prescriptions
+  - Update appointment status
+
+### Patient Account
+- **Registration**: Available at `/signup/patient`
+- **Permissions**:
+  - Book appointments
+  - View medical history
+  - Update personal profile
+  - View consultation feedback
+
+## 🚦 API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - Patient/Doctor registration
+- `POST /api/auth/register/admin` - Admin registration
+
+### Patients
+- `GET /api/patients` - Get all patients (Admin only)
+- `GET /api/patients/me` - Get current patient profile
+- `POST /api/patients` - Create patient (Admin only)
+- `PUT /api/patients/:id` - Update patient (Admin only)
+- `PUT /api/patients/me` - Update own profile
+- `DELETE /api/patients/:id` - Delete patient (Admin only)
+
+### Doctors
+- `GET /api/doctors` - Get all doctors
+- `GET /api/doctors/specializations` - Get specializations
+- `POST /api/doctors` - Create doctor (Admin only)
+- `PUT /api/doctors/:id` - Update doctor (Admin only)
+- `DELETE /api/doctors/:id` - Delete doctor (Admin only)
+
+### Appointments
+- `GET /api/appointments` - Get appointments (Admin only)
+- `GET /api/appointments/doctor` - Get doctor's appointments
+- `GET /api/appointments/my-appointments` - Get patient's appointments
+- `POST /api/appointments` - Create appointment
+- `PUT /api/appointments/:id/status` - Update appointment status
+
+### Medical Records
+- `POST /api/diagnosis` - Create diagnosis
+- `POST /api/prescriptions` - Create prescription
+- `GET /api/diagnosis/appointment/:id` - Get appointment diagnosis
+- `GET /api/prescriptions/appointment/:id` - Get appointment prescriptions
+
+## 🎨 UI Features
+
+### Responsive Design
+- Mobile-friendly interface
+- Adaptive layouts for different screen sizes
+- Touch-friendly navigation
+
+### Theme Support
+- Light and dark theme options
+- Smooth theme transitions
+- Persistent theme preferences
+
+### User Experience
+- Loading states and animations
+- Real-time form validation
+- Intuitive navigation
+- Error handling and user feedback
+
+## 🔒 Security Features
+
+- Password hashing with bcrypt
+- JWT token-based authentication
+- Role-based access control
+- Input validation and sanitization
+- SQL injection prevention
+- CORS configuration
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**
+   - Verify MySQL is running
+   - Check database credentials in `.env`
+   - Ensure database exists
+
+2. **Port Already in Use**
+   - Change port in `server.js` (backend)
+   - Change port in `package.json` (frontend)
+
+3. **CORS Issues**
+   - Verify CORS configuration in `server.js`
+   - Check API base URL in frontend
+
+4. **Authentication Issues**
+   - Verify JWT secret is consistent
+   - Check token expiration
+   - Clear localStorage if needed
+
+### Development Tips
+
+- Use browser developer tools for debugging
+- Check server console for backend errors
+- Verify API responses in Network tab
+- Test with different user roles
+
+## 📁 Project Structure
+Database-Management-System---HealthCare-System/
+├── backend/
+│ ├── middleware/
+│ │ └── authMiddleware.js
+│ ├── routes/
+│ │ ├── auth.js
+│ │ ├── patients.js
+│ │ ├── doctors.js
+│ │ ├── appointments.js
+│ │ ├── diagnosis.js
+│ │ ├── prescriptions.js
+│ │ └── insurance.js
+│ ├── db_connection.js
+│ ├── server.js
+│ └── package.json
+├── frontend/
+│ ├── public/
+│ ├── src/
+│ │ ├── pages/
+│ │ │ ├── AdminDashboard.js
+│ │ │ ├── DoctorDashboard.js
+│ │ │ └── PatientDashboard.js
+│ │ ├── login.js
+│ │ ├── Signup.js
+│ │ ├── RoleSelection.js
+│ │ ├── AdminSetup.js
+│ │ └── App.js
+│ └── package.json
+└── README.md
