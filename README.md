@@ -335,33 +335,38 @@ const JWT_SECRET = 'your_strong_and_unique_jwt_secret_key';
 
 ## 📁 Project Structure
 Database-Management-System---HealthCare-System/
+│
 ├── backend/
-│ ├── middleware/
-│ │ └── authMiddleware.js
-│ ├── routes/
-│ │ ├── auth.js
-│ │ ├── patients.js
-│ │ ├── doctors.js
-│ │ ├── appointments.js
-│ │ ├── diagnosis.js
-│ │ ├── prescriptions.js
-│ │ └── insurance.js
-│ ├── db_connection.js
-│ ├── server.js
-│ └── package.json
+│   ├── middleware/
+│   │   └── authMiddleware.js
+│   │
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── patients.js
+│   │   ├── doctors.js
+│   │   ├── appointments.js
+│   │   ├── diagnosis.js
+│   │   ├── prescriptions.js
+│   │   └── insurance.js
+│   │
+│   ├── db_connection.js
+│   ├── server.js
+│   └── package.json
 │
 ├── frontend/
-│ ├── public/
-│ ├── src/
-│ │ ├── pages/
-│ │ │ ├── AdminDashboard.js
-│ │ │ ├── DoctorDashboard.js
-│ │ │ └── PatientDashboard.js
-│ │ ├── login.js
-│ │ ├── Signup.js
-│ │ ├── RoleSelection.js
-│ │ ├── AdminSetup.js
-│ │ └── App.js
-│ └── package.json
+│   ├── public/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── AdminDashboard.js
+│   │   │   ├── DoctorDashboard.js
+│   │   │   └── PatientDashboard.js
+│   │   │
+│   │   ├── login.js
+│   │   ├── Signup.js
+│   │   ├── RoleSelection.js
+│   │   ├── AdminSetup.js
+│   │   └── App.js
+│   │
+│   └── package.json
 │
 └── README.md
