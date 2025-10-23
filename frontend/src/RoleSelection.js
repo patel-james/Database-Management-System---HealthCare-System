@@ -137,7 +137,7 @@ function RoleSelection() {
                 `}
             </style>
             <div style={pageStyle}>
-                <Link to="/credits" className="credentials-link">Credentials</Link>
+                <Link to="/credits" className="credentials-link">Credits</Link>
                 
                 <div style={leftPanelStyle}>
                     <div style={{ marginBottom: '20px' }}><BrandLogo /></div>
