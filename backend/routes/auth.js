@@ -70,7 +70,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// --- POST /api/auth/register/admin (Initial Setup - Unchanged) ---
+// --- POST /api/auth/register/admin (Initial Setup) ---
 router.post('/register/admin', async (req, res) => {
     const { email, password } = req.body;
     
@@ -89,7 +89,7 @@ router.post('/register/admin', async (req, res) => {
     }
 });
 
-// --- POST /api/auth/login (Main Login Endpoint - Unchanged) ---
+// --- POST /api/auth/login (Main Login Endpoint) ---
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {

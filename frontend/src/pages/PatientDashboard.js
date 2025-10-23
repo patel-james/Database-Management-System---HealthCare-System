@@ -37,7 +37,7 @@ function PatientDashboard() {
     const [feedbackDetails, setFeedbackDetails] = useState({ diagnosis: null, prescriptions: [], isLoading: false, appointmentId: null });
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-    const [theme, setTheme] = useState(() => localStorage.getItem('dashboardTheme') || 'dark');
+    const [theme, setTheme] = useState(() => localStorage.getItem('dashboardTheme') || 'light');
 
     const navigate = useNavigate();
     const getToken = () => localStorage.getItem('authToken');

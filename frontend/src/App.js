@@ -4,7 +4,7 @@ import Login from './login';
 import Signup from './Signup';
 import RoleSelection from './RoleSelection';
 import AdminSetup from './AdminSetup'; 
-import Credits from './Credits'; // Import the new Credits component
+import Credits from './Credits'; 
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
@@ -15,7 +15,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   const userRole = localStorage.getItem('userRole'); 
 
   if (!isAuthenticated) {
-    // Redirect to the role selection page if not authenticated
+    
     return <Navigate to="/" replace />;
   }
   
@@ -43,9 +43,9 @@ function App() {
           <Route path="/login/:role" element={<Login />} />
           <Route path="/signup/:role" element={<Signup />} />
           <Route path="/setup" element={<AdminSetup />} /> 
-          <Route path="/credits" element={<Credits />} /> {/* Add the new route for the credits page */}
+          <Route path="/credits" element={<Credits />} /> 
 
-          {/* Protected Routes (Dashboards) */}
+          
           <Route 
             path="/admin/dashboard" 
             element={

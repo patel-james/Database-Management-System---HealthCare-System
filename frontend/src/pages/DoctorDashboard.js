@@ -24,7 +24,7 @@ function DoctorDashboard() {
     const [view, setView] = useState('active'); // 'active' or 'history'
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [theme, setTheme] = useState(() => localStorage.getItem('dashboardTheme') || 'dark');
+    const [theme, setTheme] = useState(() => localStorage.getItem('dashboardTheme') || 'light');
 
     const [diagnosis, setDiagnosis] = useState('');
     const [notes, setNotes] = useState('');
