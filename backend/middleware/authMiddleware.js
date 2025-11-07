@@ -5,7 +5,7 @@ const JWT_SECRET = 'your_strong_and_unique_jwt_secret_key';
 
 const protect = async (req, res, next) => {
     let token;
-    
+
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             // 1. Get token from header

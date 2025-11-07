@@ -56,6 +56,7 @@ router.post('/register', async (req, res) => {
         res.status(201).send(`${role} account created successfully.`);
 
     } catch (error) {
+        console.error('Registration error:', error.message, error.stack);
         // If there's an error, rollback the transaction
         if (connection) await connection.rollback();
         

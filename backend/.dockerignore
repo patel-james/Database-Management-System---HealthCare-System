@@ -1,0 +1,20 @@
+# Ignore node dependencies and logs
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment files
+.env
+
+# System and editor files
+.DS_Store
+.vscode
+.idea
+
+# Git files
+.git
+.gitignore
+
+# Any build artifacts (if ever generated)
+*.log

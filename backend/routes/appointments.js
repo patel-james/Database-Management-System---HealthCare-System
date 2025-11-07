@@ -142,8 +142,7 @@ router.get('/my-appointments/history', protect, async (req, res) => {
 });
 
 
-// --- ADMIN ROUTES ---
-// Admin routes remain unchanged, omitted for brevity.
+
 
 module.exports = router;
 
